@@ -1,0 +1,65 @@
+// server.js
+const express = require("express");
+const cors = require("cors");
+const ytdl = require("ytdl-core");
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
+
+const app = express();
+const port = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json());
+
+app.get("/download", (req, res) => {
+  res.status(400).json({ error: "Please use POST request for downloading" });
+});
+
+app.post("/download", async (req, res) => {
+  const { url } = req.body;
+
+  if (!url) {
+    return res.status(400).json({ error: "URL parameter is required" });
+  }
+
+  try {
+    const info = await ytdl.getInfo(url);
+    const title = info.videoDetails.title.replace(/[^\w\s]/gi, "");
+
+    const outputPath = path.join(os.homedir(), "Downloads", `${title}.mp3`);
+
+    const audioFormat = ytdl.chooseFormat(info.formats, {
+      filter: "audioonly",
+    });
+
+    if (!audioFormat) {
+      return res.status(400).json({ error: "Audio format not found" });
+    }
+
+    const audioStream = ytdl.downloadFromInfo(info, {
+      filter: (format) => format.itag === audioFormat.itag,
+    });
+
+    audioStream.pipe(fs.createWriteStream(outputPath));
+
+    let downloadedBytes = 0;
+    let totalBytes = parseInt(audioFormat.contentLength);
+    audioStream.on("progress", (chunkLength, downloaded, total) => {
+      downloadedBytes += chunkLength;
+      const percent = downloadedBytes / totalBytes;
+      res.write(JSON.stringify({ percent }));
+    });
+
+    audioStream.on("end", () => {
+      res.write(JSON.stringify({ success: true }));
+      res.end();
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
