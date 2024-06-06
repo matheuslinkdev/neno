@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@keyframes expandAndRetract {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+}
+
+.bg-animation {
+    position: absolute;
+    left: 0;
+    right: 0;
+margin: auto;
+align-self: center;
+  width: 500px;  /* Width adjusted to cover the full viewport */
+  height: 500px; /* Height adjusted to cover the full viewport */
+  background: rgb(19, 201, 13);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: expandAndRetract 1s infinite;
+  z-index: 1; /* Ensure the animation is behind the content */
+}
+
+*{
+    color: #252525;
+}
+
+a{
+    color: #0b67e9;
+    text-decoration: underline;
+}
