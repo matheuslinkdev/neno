@@ -3,7 +3,6 @@
 import { UseAnimation } from "@/Context/AnimationContext";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import Conversor from "@/components/conversor";
-import { useEffect } from "react";
 
 export default function Home() {
 

@@ -1,4 +1,3 @@
-// server.js
 const express = require("express");
 const cors = require("cors");
 const ytdl = require("ytdl-core");
@@ -9,13 +8,24 @@ const os = require("os");
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+// Configura o middleware CORS para permitir todas as origens e métodos
+app.use(
+  cors({
+    origin: "*", // Permite todas as origens
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Permite todos os métodos HTTP
+  })
+);
+
 app.use(express.json());
 
+app.options("*", cors()); // Habilita pre-flight para todas as rotas
+
+// Endpoint de teste para GET
 app.get("/download", (req, res) => {
-  res.status(400).json({ error: "Please use POST request for downloading" });
+  res.send("<h1>Backend está rodando e pronto para receber requisições!</h1>");
 });
 
+// Endpoint principal para download
 app.post("/download", async (req, res) => {
   const { url } = req.body;
 

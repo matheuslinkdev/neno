@@ -1,44 +1,50 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DownloadList from "../DownloadList";
-import LoadingAnimation from "../LoadingAnimation";
 import { UseAnimation } from "@/Context/AnimationContext";
 
-const Conversor = () => {
+interface Download {
+  url: string;
+  timestamp: string;
+  status: string;
+}
+
+const Conversor: React.FC = () => {
   const { animation, setAnimation } = UseAnimation();
-
-  const [url, setUrl] = useState("");
-  const [progress, setProgress] = useState("Nada sendo executado no momento");
-
-  // Verificar se já há uma lista de downloads armazenada, caso não, inicia com uma vazia
-  const [downloadList, setDownloadList] = useState(() =>
-    JSON.parse(localStorage.getItem("userDownloads") || "[]")
+  const [url, setUrl] = useState<string>("");
+  const [progress, setProgress] = useState<string>(
+    "Nada sendo executado no momento"
   );
+  const [downloadList, setDownloadList] = useState<Download[]>([]);
 
-  // Definir a lista sempre que o estado dela for alterado
   useEffect(() => {
-    localStorage.setItem("userDownloads", JSON.stringify(downloadList));
+    if (typeof window !== "undefined") {
+      const storedDownloads = localStorage.getItem("userDownloads");
+      if (storedDownloads) {
+        setDownloadList(JSON.parse(storedDownloads));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("userDownloads", JSON.stringify(downloadList));
+    }
   }, [downloadList]);
 
-  const downloadListAdd = (newDownload: {
-    url: string;
-    status: string;
-    timestamp: string;
-  }) => {
+  const downloadListAdd = (newDownload: Download) => {
     setDownloadList((prevList) => {
-      let updatedList;
-
-      // Definir o limite de downloads armazenados para 15, caso usuario supere o limite, o primeiro item será substituido pelo mais recente
-      if (prevList.length >= 15) {
-        updatedList = [...prevList.slice(1), newDownload];
-      } else {
-        updatedList = [...prevList, newDownload];
+      const updatedList =
+        prevList.length >= 15
+          ? [...prevList.slice(1), newDownload]
+          : [...prevList, newDownload];
+      if (typeof window !== "undefined") {
+        localStorage.setItem("userDownloads", JSON.stringify(updatedList));
       }
-      localStorage.setItem("userDownloads", JSON.stringify(updatedList));
       return updatedList;
     });
   };
@@ -52,7 +58,7 @@ const Conversor = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/download",
+        "https://neno-backend.vercel.app/download",
         { url },
         {
           responseType: "json",
@@ -71,13 +77,17 @@ const Conversor = () => {
     } catch (error) {
       if (!url) {
         toast.error("Insira um url válido");
-        console.error("Error occurred while downloading:", error.message);
+        setAnimation(false);
+      } else {
+        if (axios.isAxiosError(error)) {
+          console.error("Error occurred while downloading:", error.message);
+        } else {
+          console.error("An unknown error occurred:", error);
+        }
+        toast.error("Erro ao fazer o download");
+        setProgress("Erro no download");
         setAnimation(false);
       }
-      console.error("Error occurred while downloading:", error.message);
-      toast.error("Erro ao fazer o download");
-      setProgress("Erro no download");
-      setAnimation(false);
     } finally {
       setTimeout(() => {
         cleanAll();
@@ -93,10 +103,13 @@ const Conversor = () => {
 
   return (
     <>
-      <div className=" align-center justify-center m-auto bg-gray-200 rounded-xl p-8 text-center">
-        <form onSubmit={handleSubmit} className="flex flex-wrap justify-center m-auto items-center">
+      <div className="align-center justify-center m-auto bg-gray-200 rounded-xl p-8 text-center">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-wrap justify-center m-auto items-center"
+        >
           <label className="text-gray-900 text-lg">
-             URL:
+            URL:
             <input
               type="text"
               value={url}
@@ -112,9 +125,7 @@ const Conversor = () => {
             Baixar Arquivo
           </button>
         </form>
-
         <h4 className="text-lg">Status: {progress}</h4>
-
         <ToastContainer autoClose={3000} className="text-lg" />
       </div>
       <DownloadList downloads={downloadList} />
@@ -123,3 +134,4 @@ const Conversor = () => {
 };
 
 export default Conversor;
+
