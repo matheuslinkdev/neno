@@ -6,24 +6,34 @@ const path = require("path");
 const os = require("os");
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port =  5000;
 
-// Configura o middleware CORS para permitir todas as origens e métodos
+// Configura o middleware CORS
+const allowedOrigins = ["http://localhost:3000", "http://localhost:3000/download"];
 app.use(
   cors({
-    origin: "*", // Permite todas as origens
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Permite todos os métodos HTTP
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: "GET, POST, PUT, DELETE, OPTIONS",
+    allowedHeaders: "X-Requested-With, Content-Type, Authorization",
   })
 );
+app.options("*", cors()); // Habilita pre-flight para todas as rotas
 
 app.use(express.json());
 
-app.options("*", cors()); // Habilita pre-flight para todas as rotas
 
 // Endpoint de teste para GET
 app.get("/download", (req, res) => {
   res.send("<h1>Backend está rodando e pronto para receber requisições!</h1>");
 });
+
+app.get("/", (req, res) => res.send("Express on Vercel"));
 
 // Endpoint principal para download
 app.post("/download", async (req, res) => {
@@ -73,3 +83,5 @@ app.post("/download", async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+module.exports = app

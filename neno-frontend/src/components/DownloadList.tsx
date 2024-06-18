@@ -10,7 +10,11 @@ interface DownloadListProps {
 const DownloadList: React.FC<DownloadListProps> = ({ downloads }) => {
   return (
     <div>
-      <h4 className="text-xl my-2">Lista de downloads mais recentes:</h4>
+      {downloads.length === 0 ? (
+        <h4 className="text-xl my-2">Nenhum download realizado !</h4>
+      ) : (
+        <h4 className="text-xl my-2">Downloads recentes:</h4>
+      )}
       <ul>
         {downloads.map((download, index) => (
           <li key={index} className="my-2">

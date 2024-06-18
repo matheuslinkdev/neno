@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -51,14 +49,23 @@ const Conversor: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (url !== "") {
-      setProgress("Fazendo o Download do Arquivo ...");
-      setAnimation(true);
+    setAnimation(false); // Desliga a animação no início
+
+    if (!url) {
+      toast.error("Insira uma URL !");
+      setProgress("Insira uma URL !");
+      setTimeout(() => {
+        setProgress("Nada sendo executado no momento");
+      }, 5000);
+      return;
     }
+
+    setProgress("Fazendo o Download do Arquivo ...");
+    setAnimation(true);
 
     try {
       const response = await axios.post(
-        "https://neno-backend.vercel.app/download",
+        "http://localhost:5000/download",
         { url },
         {
           responseType: "json",
@@ -66,27 +73,25 @@ const Conversor: React.FC = () => {
         }
       );
 
-      setAnimation(false);
       setProgress("Download Concluído");
       toast.success("Download Concluído");
+
       downloadListAdd({
         url,
         status: "Concluído",
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      if (!url) {
-        toast.error("Insira um url válido");
-        setAnimation(false);
-      } else {
-        if (axios.isAxiosError(error)) {
-          console.error("Error occurred while downloading:", error.message);
-        } else {
-          console.error("An unknown error occurred:", error);
-        }
+      if (axios.isAxiosError(error)) {
+        console.error("Error occurred while downloading:", error);
         toast.error("Erro ao fazer o download");
-        setProgress("Erro no download");
-        setAnimation(false);
+        setProgress(error.code);
+        setAnimation(false)
+      } else {
+        console.error("An unknown error occurred:", error);
+        toast.error("Erro inesperado ao fazer o download");
+        setProgress("Erro inesperado");
+        setAnimation(false)
       }
     } finally {
       setTimeout(() => {
@@ -125,7 +130,7 @@ const Conversor: React.FC = () => {
             Baixar Arquivo
           </button>
         </form>
-        <h4 className="text-lg">Status: {progress}</h4>
+        <h4 className="text-lg"> {progress}</h4>
         <ToastContainer autoClose={3000} className="text-lg" />
       </div>
       <DownloadList downloads={downloadList} />
@@ -134,4 +139,3 @@ const Conversor: React.FC = () => {
 };
 
 export default Conversor;
-
