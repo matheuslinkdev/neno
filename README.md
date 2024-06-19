@@ -8,7 +8,7 @@ Até agora, não consegui fazer o deploy da aplicação, pois estou enfrentando 
 
 Abaixo está um passo a passo de como você pode rodar a aplicação na sua máquina:
 
-> Ou, se preferir, veja o tutorial no YouTube [AQUI](#)
+Ou, se preferir, veja o tutorial no YouTube [AQUI](https://youtu.be/jeqpe-hO7gA)
 
 ## Passo a passo
 
